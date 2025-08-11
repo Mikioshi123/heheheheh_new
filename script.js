@@ -8,21 +8,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     try {
-        app.innerHTML = `<p>Проводим финальную диагностику...</p>`;
+        app.innerHTML = `<p>Проверка доступа...</p>`;
         const user = tg.initDataUnsafe?.user;
         if (!user) throw new Error("Запустите приложение через Telegram.");
 
-        const { data, error } = await supabaseClient.functions.invoke('check-and-add-employee', { body: { user } });
+        // --- ЛОГИКА АВТОРИЗАЦИИ БЕЗ EDGE FUNCTIONS ---
+        // 1. Пытаемся получить запись о пользователе
+        let { data: employee, error: selectError } = await supabaseClient
+            .from('employees')
+            .select('*')
+            .eq('telegram_id', user.id)
+            .single();
 
-        if (error) {
-            // Если функция вернула ошибку, пытаемся прочитать отчет из тела ошибки
-            const errorBody = await error.context.json();
-            app.innerHTML = `<h2 style="color: red;">Тест провален. Ошибка: ${error.message}</h2><pre>${JSON.stringify(errorBody, null, 2)}</pre>`;
-        } else {
-            // Если функция вернула успешный ответ
-             app.innerHTML = `<h2 style="color: green;">Тест завершен!</h2><p>Отладочный отчет от сервера:</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+        // 2. Если пользователя нет, создаем его
+        if (selectError && selectError.code === 'PGRST116') { // Код ошибки "не найдено"
+            const { data: newEmployee, error: insertError } = await supabaseClient
+                .from('employees')
+                .insert({ telegram_id: user.id, first_name: user.first_name, is_active: true })
+                .select()
+                .single();
+            if (insertError) throw insertError;
+            employee = newEmployee;
+        } else if (selectError) {
+            throw selectError;
         }
+        
+        // 3. Проверяем, активен ли пользователь
+        if (!employee.is_active) {
+            throw new Error("Доступ запрещен: аккаунт неактивен.");
+        }
+        // --- КОНЕЦ ЛОГИКИ АВТОРИЗАЦИИ ---
+
+        app.innerHTML = `<p>Загрузка возражений...</p>`;
+        const { data: objections, error: objectionsError } = await supabaseClient
+            .from('objections')
+            .select('*');
+        if (objectionsError) throw objectionsError;
+
+        app.innerHTML = `<h1>База знаний</h1>`;
+        objections.forEach(obj => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<h3>${obj.question}</h3><p>${obj.answer}</p>`;
+            app.appendChild(card);
+        });
+
     } catch (e) {
-        app.innerHTML = `<p style="color: red;">Критическая ошибка: ${e.message}</p>`;
+        app.innerHTML = `<p style="color: red;">Ошибка: ${e.message}</p>`;
     }
 });
