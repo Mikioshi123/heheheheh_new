@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- НАСТРОЙКИ ---
     const SUPABASE_URL = 'https://wvigsckjnuogezigsnrp.supabase.co'; 
-    const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2aWdzY2tqbnVvZ2V6aWdzbnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4OTU3MjEsImV4cCI6MjA3MDQ3MTcyMX0.rc6flmYgpC5DMVGcK-eU_2XDj_TOxBOrR-3mIgnASNE';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2aWdzY2tqbnVvZ2V6aWdzbnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4OTU3MjEsImV4cCI6MjA3MDQ3MTcyMX0.rc6flmYgpC5DMVGcK-eU_2XDj_TOxBOrR-3mIgnASNE';
     // -----------------
 
     const appContainer = document.getElementById('appContainer');
